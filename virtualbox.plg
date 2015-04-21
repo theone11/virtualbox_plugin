@@ -3,10 +3,10 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name        "virtualbox">
 <!ENTITY author      "Dan Kessler">
-<!ENTITY version     "2015.04.21">
+<!ENTITY version     "2015.04.21-1">
 <!ENTITY pluginURL   "https://raw.githubusercontent.com/theone11/virtualbox_test/master/&name;.plg">
-<!ENTITY packageVER  "v1.0">
-<!ENTITY packageMD5  "6a4e123cd8446d12ef55bda211b19a35">
+<!ENTITY packageVER  "v1.1">
+<!ENTITY packageMD5  "528717003df6da90d78501a5f4bc3cdd">
 <!ENTITY packagefile "&name;-package-&packageVER;.tar.gz">
 <!ENTITY packageURL  "https://github.com/theone11/virtualbox_test/raw/master/&packagefile;">
 <!ENTITY pluginLOC   "/boot/config/plugins/&name;">
@@ -20,10 +20,12 @@
 >
 
 <!--
-# Release Version v2015.04.21
+# Release Version v2015.04.21-1
 -->
 
 <CHANGES>
+###2015.04.21-1
+- Fixed unRAID v5 compatability
 ###2015.04.21
 - Added support for unRAID v6 Plugin Manager and Architecture
 - Added support for tgz and txz compiled packages
