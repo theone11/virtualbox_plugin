@@ -3,7 +3,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name        "virtualbox">
 <!ENTITY author      "Dan Kessler">
-<!ENTITY version     "2015.04.22">
+<!ENTITY version     "2015.04.22-1">
 <!ENTITY pluginURL   "https://raw.githubusercontent.com/theone11/virtualbox_plugin/master/&name;.plg">
 <!ENTITY packageVER  "v1.2">
 <!ENTITY packageMD5  "5d7114ba4b96fc709251ed3f33c59ced">
@@ -20,10 +20,12 @@
 >
 
 <!--
-# Release Version v2015.04.22
+# Release Version v2015.04.22-1
 -->
 
 <CHANGES>
+###2015.04.22-1
+- Fixed unRAID v5 compatability
 ###2015.04.22
 - Added newline between each log line during install/remove scripts
 - Added settings page icon
@@ -189,6 +191,7 @@ if [ "$INSTALL_PKG" == "true" ] ; then
     echo "---" &gt;&gt; "&emhttpLOC;/&name;.page"
   else
     cp -f "&emhttpLOC;/images/&name;.png" "&emhttpLOC;"
+    cp -f "&emhttpLOC;/php/&name;_main.php" "&emhttpLOC;/&name;.php"
   fi
   echo "&lt;?php include '&emhttpLOC;/php/&name;_main.php';?&gt;" &gt;&gt; "&emhttpLOC;/&name;.page"
   <!--# Create or fix configuration file -->
