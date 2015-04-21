@@ -84,29 +84,6 @@
 
 <!--
 ############################################
-# plugin Remove method
-############################################
--->
-<FILE Run="/bin/bash" Method="remove">
-<INLINE>
-logit()
-{
-  <!--logger -trc.&name; -plocal7.info -is "$1"-->
-  echo "$1"
-}
-
-logit "Removing plugin..."
-[ -f "/tmp/&name;-install" ] &amp;&amp; rm -f "/tmp/&name;-install"
-[ -f "/etc/rc.d/rc.&name;" ] &amp;&amp; "/etc/rc.d/rc.&name;" stop
-[ -f "/etc/rc.d/rc.&name;" ] &amp;&amp; rm -f "/etc/rc.d/rc.&name;"
-[ -d "&emhttpLOC;" ] &amp;&amp; rm -fR "&emhttpLOC;"
-[ -f "&pluginLOC;/*.tar.gz" ] &amp;&amp; rm -f "&pluginLOC;/*.tar.gz"
-logit "Plugin stopped and removed - no files removed from &pluginLOC;"
-</INLINE>
-</FILE>
-
-<!--
-############################################
 # Plugin Install script
 ############################################
 -->
@@ -256,6 +233,29 @@ else
   rm -f "/tmp/&name;-install"
   exit 1
 fi
+</INLINE>
+</FILE>
+
+<!--
+############################################
+# plugin Remove method
+############################################
+-->
+<FILE Run="/bin/bash" Method="remove">
+<INLINE>
+logit()
+{
+  <!--logger -trc.&name; -plocal7.info -is "$1"-->
+  echo "$1"
+}
+
+logit "Removing plugin..."
+[ -f "/tmp/&name;-install" ] &amp;&amp; rm -f "/tmp/&name;-install"
+[ -f "/etc/rc.d/rc.&name;" ] &amp;&amp; "/etc/rc.d/rc.&name;" stop
+[ -f "/etc/rc.d/rc.&name;" ] &amp;&amp; rm -f "/etc/rc.d/rc.&name;"
+[ -d "&emhttpLOC;" ] &amp;&amp; rm -fR "&emhttpLOC;"
+[ -f "&pluginLOC;/*.tar.gz" ] &amp;&amp; rm -f "&pluginLOC;/*.tar.gz"
+logit "Plugin stopped and removed - no files removed from &pluginLOC;"
 </INLINE>
 </FILE>
 </PLUGIN>
