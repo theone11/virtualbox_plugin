@@ -1,6 +1,5 @@
 Menu="OtherSettings"
 Icon="virtualbox.png"
-Version="2015.04.21-1"
 Author="Dan Kessler"
 Title="VirtualBox"
 Type="php"

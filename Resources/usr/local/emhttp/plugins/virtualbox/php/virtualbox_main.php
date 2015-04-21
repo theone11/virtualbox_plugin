@@ -513,7 +513,7 @@ $version_actions_exist = "false";
   <br></br>
 
   <div>
-    <form name="virtualbox_settings" method="POST" action="/plugins/virtualbox/virtualbox_submit.php" target="progressFrame">
+    <form name="virtualbox_settings" method="POST" action="/plugins/virtualbox/php/virtualbox_submit.php" target="progressFrame">
       <input type="hidden" name="cmd" value="apply">
       <table>
         <tr>

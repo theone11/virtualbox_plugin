@@ -3,10 +3,10 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name        "virtualbox">
 <!ENTITY author      "Dan Kessler">
-<!ENTITY version     "2015.04.21-1">
+<!ENTITY version     "2015.04.22">
 <!ENTITY pluginURL   "https://raw.githubusercontent.com/theone11/virtualbox_plugin/master/&name;.plg">
-<!ENTITY packageVER  "v1.1">
-<!ENTITY packageMD5  "528717003df6da90d78501a5f4bc3cdd">
+<!ENTITY packageVER  "v1.2">
+<!ENTITY packageMD5  "5d7114ba4b96fc709251ed3f33c59ced">
 <!ENTITY packagefile "&name;-package-&packageVER;.tar.gz">
 <!ENTITY packageURL  "https://github.com/theone11/virtualbox_plugin/raw/master/&packagefile;">
 <!ENTITY pluginLOC   "/boot/config/plugins/&name;">
@@ -20,10 +20,15 @@
 >
 
 <!--
-# Release Version v2015.04.21-1
+# Release Version v2015.04.22
 -->
 
 <CHANGES>
+###2015.04.22
+- Added newline between each log line during install/remove scripts
+- Added settings page icon
+- Changed package so that it extracts directly to all needed folders (/etc/rc.d, /usr/local/emhttp/plugins/virtualbox)
+- Add version to PAGE file automatically so it and package don't need to be modified on every change
 ###2015.04.21-1
 - Fixed unRAID v5 compatability
 ###2015.04.21
@@ -97,6 +102,7 @@
 logit()
 {
   <!--logger -trc.&name; -plocal7.info -is "$1"-->
+  echo ""
   echo "$1"
 }
 
@@ -168,31 +174,23 @@ fi
 
 if [ "$INSTALL_PKG" == "true" ] ; then
   logit "Extracting plugin package..."
-  <!--# Install plugin files -->
-  mkdir -p "/tmp/&name;-extract"
-  tar -xf "&pluginLOC;/&packagefile;" -C "/tmp/&name;-extract"
-  if [ ! -d "&emhttpLOC;" ] ; then
-    mkdir -p "&emhttpLOC;/event"
-  fi
-  cp -f "/tmp/&name;-extract/disks_mounted" "&emhttpLOC;/event/disks_mounted"
-  cp -f "/tmp/&name;-extract/rc.&name;" "/etc/rc.d/rc.&name;"
+  <!--# Remove current existing files -->
+  [ -f "/etc/rc.d/rc.&name;" ] &amp;&amp; rm -f "/etc/rc.d/rc.&name;"
+  [ -d "&emhttpLOC;" ] &amp;&amp; rm -fR "&emhttpLOC;"
+  <!--# Extract files -->
+  tar -xf "&pluginLOC;/&packagefile;" -C "/"
+  <!-- Make rc.&name executable -->
   chmod 0770 "/etc/rc.d/rc.&name;"
-  cp -f "/tmp/&name;-extract/README.md" "&emhttpLOC;/README.md"
-  cp -f "/tmp/&name;-extract/unmounting_disks" "&emhttpLOC;/event/unmounting_disks"
-  cp -f "/tmp/&name;-extract/&name;.png" "&emhttpLOC;/&name;.png"
-  cp -f "/tmp/&name;-extract/&name;_main.php" "&emhttpLOC;/&name;_main.php"
-  cp -f "/tmp/&name;-extract/&name;_submit.php" "&emhttpLOC;/&name;_submit.php"
-  <!--# Edit PAGE file depending on unRAID OS type 32/64 bit -->
+  <!--# Edit PAGE file depending on unRAID OS type 32/64 bit, also add version number -->
+  <!--# Add plugin image to emhttp depending on unRAID OS type 32/64 bit -->
   UNRAID_OS_BITS=$(getconf LONG_BIT)
+  echo "Version=\"&version;\"" &gt;&gt; "&emhttpLOC;/&name;.page"
   if [ "$UNRAID_OS_BITS" == "64" ] ; then
-    echo "---" &gt;&gt; "/tmp/&name;-extract/&name;.page"
+    echo "---" &gt;&gt; "&emhttpLOC;/&name;.page"
+  else
+    cp -f "&emhttpLOC;/images/&name;.png" "&emhttpLOC;"
   fi
-  echo "&lt;?php include '/usr/local/emhttp/plugins/&name;/&name;_main.php';?&gt;" &gt;&gt; "/tmp/&name;-extract/&name;.page"
-  cp -f "/tmp/&name;-extract/&name;.page" "&emhttpLOC;/&name;.page"
-
-  rm -Rf "/tmp/&name;-extract"
-  rm -f "/tmp/&name;-install"
-
+  echo "&lt;?php include '&emhttpLOC;/php/&name;_main.php';?&gt;" &gt;&gt; "&emhttpLOC;/&name;.page"
   <!--# Create or fix configuration file -->
   if [ ! -f "&pluginLOC;/&name;.cfg" ] ; then
     logit "Configuration file not found. Creating configuration file..."
@@ -214,6 +212,7 @@ if [ "$INSTALL_PKG" == "true" ] ; then
   [ ! `cat "&pluginLOC;/&name;.cfg" | grep VBOXWEBSRV_LOGINTERVAL` ] &amp;&amp; echo "VBOXWEBSRV_LOGINTERVAL=\"604800\"" &gt;&gt; "&pluginLOC;/&name;.cfg"
 
   rm -Rf "/tmp/&name;-packages"
+  rm -f "/tmp/&name;-install"
   logit "Plugin and Package file &packagefile; extracted and installed successfully"
   exit 0
 else
@@ -222,15 +221,19 @@ else
     <!-- Remove bad MD5 downloaded package if exists -->
     rm -f "&pluginLOC;/&packagefile;"
   fi
-  logit "Reverting back to previously saved packages"
-  TEMP1="/tmp/&name;-packages/&name;-package-*"
+  logit "Reverting back to previously saved packages..."
+  TEMP1="/tmp/&name;-packages"
   TEMP2=$(ls $TEMP1)
   if [ "$TEMP2" != "" ] ; then
     TEMP="/tmp/&name;-packages/&name;-package-*"
     mv -f $TEMP "&pluginLOC;"
+    logit "Previous packages restored"
+  else
+    logit "No previous packages to restored"
   fi
   rm -Rf "/tmp/&name;-packages"
   rm -f "/tmp/&name;-install"
+  logit "Plugin install failed"
   exit 1
 fi
 </INLINE>
@@ -247,6 +250,7 @@ logit()
 {
   <!--logger -trc.&name; -plocal7.info -is "$1"-->
   echo "$1"
+  echo ""
 }
 
 logit "Removing plugin..."
@@ -254,7 +258,6 @@ logit "Removing plugin..."
 [ -f "/etc/rc.d/rc.&name;" ] &amp;&amp; "/etc/rc.d/rc.&name;" stop
 [ -f "/etc/rc.d/rc.&name;" ] &amp;&amp; rm -f "/etc/rc.d/rc.&name;"
 [ -d "&emhttpLOC;" ] &amp;&amp; rm -fR "&emhttpLOC;"
-[ -f "&pluginLOC;/*.tar.gz" ] &amp;&amp; rm -f "&pluginLOC;/*.tar.gz"
 logit "Plugin stopped and removed - no files removed from &pluginLOC;"
 </INLINE>
 </FILE>
