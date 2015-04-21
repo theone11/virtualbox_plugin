@@ -1,0 +1,3 @@
+#!/bin/bash
+[ -f /boot/config/plugins/virtualbox/virtualbox.cfg ] && source /boot/config/plugins/virtualbox/virtualbox.cfg
+/etc/rc.d/rc.virtualbox boot

@@ -1,0 +1,880 @@
+#!/bin/sh
+
+#################
+# L O G I T
+#################
+logit()
+{
+  logger -trc.virtualbox -plocal7.info -is "$1"
+  echo "$1"
+}
+
+#################
+# W R I T E C F G
+#################
+write_cfg()
+{
+  echo "# VirtualBox plugin configuration" > ${VBOX_PLUGIN_PATH}/virtualbox.cfg
+
+  echo "INSTALL_ON_BOOT=\"$INSTALL_ON_BOOT\"" >> ${VBOX_PLUGIN_PATH}/virtualbox.cfg
+  echo "UPGRADE_ON_BOOT=\"$UPGRADE_ON_BOOT\"" >> ${VBOX_PLUGIN_PATH}/virtualbox.cfg
+  echo "UPGRADE_PLG_ON_BOOT=\"$UPGRADE_PLG_ON_BOOT\"" >> ${VBOX_PLUGIN_PATH}/virtualbox.cfg
+  echo "START_ON_ARRAY_MOUNT=\"$START_ON_ARRAY_MOUNT\"" >> ${VBOX_PLUGIN_PATH}/virtualbox.cfg
+  echo "START_VMS_ON_START=\"$START_VMS_ON_START\"" >> ${VBOX_PLUGIN_PATH}/virtualbox.cfg
+  echo "VBOX_SYMLINK_LOCATION=\"$VBOX_SYMLINK_LOCATION\"" >> ${VBOX_PLUGIN_PATH}/virtualbox.cfg
+  echo "VBOXWEBSRV_HOST_IP=\"$VBOXWEBSRV_HOST_IP\"" >> ${VBOX_PLUGIN_PATH}/virtualbox.cfg
+  echo "VBOXWEBSRV_HOST_PORT=\"$VBOXWEBSRV_HOST_PORT\"" >> ${VBOX_PLUGIN_PATH}/virtualbox.cfg
+  echo "VBOXWEBSRV_LOGFILE=\"$VBOXWEBSRV_LOGFILE\"" >> ${VBOX_PLUGIN_PATH}/virtualbox.cfg
+  echo "VBOXWEBSRV_VERBOSE=\"$VBOXWEBSRV_VERBOSE\"" >> ${VBOX_PLUGIN_PATH}/virtualbox.cfg
+  echo "VBOXWEBSRV_LOGROTATE=\"$VBOXWEBSRV_LOGROTATE\"" >> ${VBOX_PLUGIN_PATH}/virtualbox.cfg
+  echo "VBOXWEBSRV_LOGSIZE=\"$VBOXWEBSRV_LOGSIZE\"" >> ${VBOX_PLUGIN_PATH}/virtualbox.cfg
+  echo "VBOXWEBSRV_LOGINTERVAL=\"$VBOXWEBSRV_LOGINTERVAL\"" >> ${VBOX_PLUGIN_PATH}/virtualbox.cfg
+
+  logit "Plugin configuration written"
+}
+
+#################
+# W R I T E S T A T U S
+#################
+write_status()
+{
+  echo "# VirtualBox status" > $STATUS_FILE
+
+  echo "UNRAID_KERNEL_VER=\"$UNRAID_KERNEL_VER\"" >> $STATUS_FILE
+  echo "UNRAID_OS_BITS=\"$UNRAID_OS_BITS\"" >> $STATUS_FILE
+
+  echo "VBOX_ORG_HOSTING_SERVER_EXISTS=\"$VBOX_ORG_HOSTING_SERVER_EXISTS\"" >> $STATUS_FILE
+  echo "VBOX_ORG_ONLINE_VER=\"$VBOX_ORG_ONLINE_VER\"" >> $STATUS_FILE
+
+  echo "VBOX_PKG_HOSTING_SERVER_EXISTS=\"$VBOX_PKG_HOSTING_SERVER_EXISTS\"" >> $STATUS_FILE
+  echo "VBOX_PKG_ONLINE_EXIST=\"$VBOX_PKG_ONLINE_EXIST\"" >> $STATUS_FILE
+  echo "VBOX_PKG_ONLINE_VER=\"$VBOX_PKG_ONLINE_VER\"" >> $STATUS_FILE
+  echo "VBOX_PKG_LATEST_ONLINE_VER=\"$VBOX_PKG_LATEST_ONLINE_VER\"" >> $STATUS_FILE
+  echo "VBOX_PKG_LATEST_ONLINE_KERNEL_VER=\"$VBOX_PKG_LATEST_ONLINE_KERNEL_VER\"" >> $STATUS_FILE
+  echo "VBOX_PKG_LOCAL_VER=\"$VBOX_PKG_LOCAL_VER\"" >> $STATUS_FILE
+  echo "VBOX_PKG_INSTALLED_VER=\"$VBOX_PKG_INSTALLED_VER\"" >> $STATUS_FILE
+  echo "VBOX_PKG_LOCAL_KERNEL=\"$VBOX_PKG_LOCAL_KERNEL\"" >> $STATUS_FILE
+
+  echo "VBOX_EXT_HOSTING_SERVER_EXISTS=\"$VBOX_PKG_HOSTING_SERVER_EXISTS\"" >> $STATUS_FILE
+  echo "VBOX_EXT_ONLINE_EXIST=\"$VBOX_EXT_ONLINE_EXIST\"" >> $STATUS_FILE
+  echo "VBOX_EXT_ONLINE_VER=\"$VBOX_EXT_ONLINE_VER\"" >> $STATUS_FILE
+  echo "VBOX_EXT_LOCAL_VER=\"$VBOX_EXT_LOCAL_VER\"" >> $STATUS_FILE
+  echo "VBOX_EXT_INSTALLED_VER=\"$VBOX_EXT_INSTALLED_VER\"" >> $STATUS_FILE
+
+  echo "VBOX_GAD_HOSTING_SERVER_EXISTS=\"$VBOX_GAD_HOSTING_SERVER_EXISTS\"" >> $STATUS_FILE
+  echo "VBOX_GAD_ONLINE_EXIST=\"$VBOX_GAD_ONLINE_EXIST\"" >> $STATUS_FILE
+  echo "VBOX_GAD_ONLINE_VER=\"$VBOX_GAD_ONLINE_VER\"" >> $STATUS_FILE
+  echo "VBOX_GAD_LOCAL_VER=\"$VBOX_GAD_LOCAL_VER\"" >> $STATUS_FILE
+
+  echo "VBOX_PLG_HOSTING_SERVER_EXISTS=\"$VBOX_PLG_HOSTING_SERVER_EXISTS\"" >> $STATUS_FILE
+  echo "VBOX_PLG_ONLINE_EXIST=\"$VBOX_PLG_ONLINE_EXIST\"" >> $STATUS_FILE
+  echo "VBOX_PLG_ONLINE_VER=\"$VBOX_PLG_ONLINE_VER\"" >> $STATUS_FILE
+  echo "VBOX_PLG_LOCAL_VER=\"$VBOX_PLG_LOCAL_VER\"" >> $STATUS_FILE
+}
+
+####################
+# G E T O N L I N E V E R S I O N
+####################
+virtualbox_getonlineversion()
+{
+  # VirtualBox original hosting server
+  VBOX_ORG_HOSTING_SERVER="http://download.virtualbox.org/virtualbox/LATEST.TXT"
+  # Get online/offline status of Virtualbox original hosting server
+  wget --quiet --timeout=10 $VBOX_ORG_HOSTING_SERVER -O /tmp/virtualbox_virtualboxLATEST.txt
+  VBOX_ORG_HOSTING_SERVER_EXISTS=$?
+  # Check if Virtualbox package hosting server is online
+  if [ "$VBOX_ORG_HOSTING_SERVER_EXISTS" == "0" ] ; then
+    # Get latest version number from server
+    VBOX_ORG_ONLINE_VER=$(cat /tmp/virtualbox_virtualboxLATEST.txt)
+  else
+    # Set version to server_down - does not exist
+    VBOX_ORG_ONLINE_VER="server_down"
+  fi
+  rm --force /tmp/virtualbox_virtualboxLATEST.txt
+
+  # VirtualBox package hosting server by lainie
+  VBOX_PKG_HOSTING_SERVER="vbox.a1aina.com"
+  # Get online/offline status of Virtualbox package hosting server
+  wget --quiet --timeout=10 $VBOX_PKG_HOSTING_SERVER -O /tmp/virtualbox_a1ainasite.html
+#  wget --quiet --timeout=10 vbox.a1aina.com -O /tmp/virtualbox_a1ainasite.html
+  VBOX_PKG_HOSTING_SERVER_EXISTS=$?
+  # Check if Virtualbox package hosting server is online
+  if [ "$VBOX_PKG_HOSTING_SERVER_EXISTS" == "0" ] ; then
+    if [ "$UNRAID_OS_BITS" == "32" ] ; then
+      # Get latest 32bit version number from server
+      VBOX_PKG_ONLINE_VER=$(grep -v "x64.t[gx]z<" /tmp/virtualbox_a1ainasite.html | grep ".t[gx]z<" | grep -m 1 "${UNRAID_KERNEL_VER}" | awk 'gsub(/.*vbox-|-unRAID.*/,"")')
+      MY_COMMAND="awk 'gsub (/.*-$UNRAID_KERNEL_VER.|<\/a>.*/,\"\")'"
+      VBOX_PKG_ONLINE_EXTENSION=$(grep -v "x64.t[gx]z<" /tmp/virtualbox_a1ainasite.html | grep -m 1 ".t[gx]z<" | eval $MY_COMMAND)
+      VBOX_PKG_ONLINE_FILENAME="vbox-${VBOX_PKG_ONLINE_VER}-unRAID-${UNRAID_KERNEL_VER}.${VBOX_PKG_ONLINE_EXTENSION}"
+      VBOX_PKG_LATEST_ONLINE_VER=$(grep -v "x64.t[gx]z<" /tmp/virtualbox_a1ainasite.html | grep -m 1 ".t[gx]z<" | awk 'gsub(/.*vbox-|-unRAID.*/,"")')
+      VBOX_PKG_LATEST_ONLINE_KERNEL_VER=$(grep -v "x64.t[gx]z<" /tmp/virtualbox_a1ainasite.html | grep -m 1 ".t[gx]z<" | awk 'gsub(/.*unRAID-|.t[gx]z.*/,"")')
+    elif [ "$UNRAID_OS_BITS" == "64" ] ; then
+      # Get latest 64bit version number from server
+      VBOX_PKG_ONLINE_VER=$(grep "x64.t[gx]z<" /tmp/virtualbox_a1ainasite.html | grep -m 1 "${UNRAID_KERNEL_VER}" | awk 'gsub(/.*vbox-|-unRAID.*/,"")')
+      MY_COMMAND="awk 'gsub (/.*-$UNRAID_KERNEL_VER-|<\/a>.*/,\"\")'"
+      VBOX_PKG_ONLINE_EXTENSION=$(grep "x64.t[gx]z<" /tmp/virtualbox_a1ainasite.html | grep -m 1 ".t[gx]z<" | eval $MY_COMMAND)
+      VBOX_PKG_ONLINE_FILENAME="vbox-${VBOX_PKG_ONLINE_VER}-unRAID-${UNRAID_KERNEL_VER}-${VBOX_PKG_ONLINE_EXTENSION}"
+      VBOX_PKG_LATEST_ONLINE_VER=$(grep -m 1 "x64.t[gx]z<" /tmp/virtualbox_a1ainasite.html | awk 'gsub(/.*vbox-|-unRAID.*/,"")')
+      VBOX_PKG_LATEST_ONLINE_KERNEL_VER=$(grep -m 1 "x64.t[gx]z<" /tmp/virtualbox_a1ainasite.html | awk 'gsub(/.*unRAID-|-x64.t[gx]z.*/,"")')
+    fi
+  else
+    # Set version to server_down - does not exist
+    VBOX_PKG_ONLINE_VER="server_down"
+    VBOX_PKG_LATEST_ONLINE_VER="server_down"
+    VBOX_PKG_LATEST_ONLINE_KERNEL_VER="server_down"
+  fi
+  rm --force /tmp/virtualbox_a1ainasite.html
+  # VirtualBox package hosting server URL
+  VBOX_PKG_URL="http://vbox.a1aina.com/files"
+  # Check if VirtualBox package file exists online
+  wget --quiet --spider --timeout=10 ${VBOX_PKG_URL}/${VBOX_PKG_ONLINE_FILENAME}
+  VBOX_PKG_ONLINE_EXIST=$?
+
+  # VirtualBox Extension hosting server
+  VBOX_EXT_HOSTING_SERVER="http://download.virtualbox.org/virtualbox/"
+  # Get online/offline status of Virtualbox Extension package hosting server
+  wget --quiet --spider --timeout=10 $VBOX_EXT_HOSTING_SERVER
+  VBOX_EXT_HOSTING_SERVER_EXISTS=$?
+  # Check if Virtualbox Extension package hosting server is online
+  if [ "$VBOX_EXT_HOSTING_SERVER_EXISTS" == "0" ] ; then
+    # Latest version number is the same as unRAID compiled version
+    VBOX_EXT_ONLINE_VER=$VBOX_PKG_ONLINE_VER
+  else
+    # Set version to server_down - does not exist
+    VBOX_EXT_ONLINE_VER="server_down"
+  fi
+  # VirtualBox Extension package filename
+  VBOX_EXT_ONLINE_FILENAME="Oracle_VM_VirtualBox_Extension_Pack-${VBOX_EXT_ONLINE_VER}.vbox-extpack"
+  # VirtualBox Extension package hosting server URL
+  VBOX_EXT_URL="http://download.virtualbox.org/virtualbox/${VBOX_EXT_ONLINE_VER}"
+  # Check if VirtualBox Extension package file exists online
+  wget --quiet --spider --timeout=10 ${VBOX_EXT_URL}/${VBOX_EXT_ONLINE_FILENAME}
+  VBOX_EXT_ONLINE_EXIST=$?
+
+  # VirtualBox Guest Additions hosting server
+  VBOX_GAD_HOSTING_SERVER="http://download.virtualbox.org/virtualbox/"
+  # Get online/offline status of Virtualbox Guest Additions package hosting server
+  wget --quiet --spider --timeout=10 $VBOX_GAD_HOSTING_SERVER
+  VBOX_GAD_HOSTING_SERVER_EXISTS=$?
+  # Check if Virtualbox Guest Additions package hosting server is online
+  if [ "$VBOX_GAD_HOSTING_SERVER_EXISTS" == "0" ] ; then
+    # Latest version number is the same as unRAID compiled version
+    VBOX_GAD_ONLINE_VER=$VBOX_PKG_ONLINE_VER
+  else
+    # Set version to server_down - does not exist
+    VBOX_GAD_ONLINE_VER="server_down"
+  fi
+  # VirtualBox Guest Additions package filename
+  VBOX_GAD_ONLINE_FILENAME="VBoxGuestAdditions_${VBOX_GAD_ONLINE_VER}.iso"
+  # VirtualBox Guest Additions package hosting server URL
+  VBOX_GAD_URL="http://download.virtualbox.org/virtualbox/${VBOX_GAD_ONLINE_VER}"
+  # Check if VirtualBox Guest Additions package file exists online
+  wget --quiet --spider --timeout=10 ${VBOX_GAD_URL}/${VBOX_GAD_ONLINE_FILENAME}
+  VBOX_GAD_ONLINE_EXIST=$?
+
+  # Write status to update WEBUI
+  write_status
+}
+
+###################
+# G E T L O C A L V E R S I O N
+###################
+virtualbox_getlocalversion()
+{
+  # Newest local Virtualbox package filename and version
+  if [ "$UNRAID_OS_BITS" == "32" ] ; then
+    VBOX_PKG_LOCAL_FILENAME=$(ls -1Art ${VBOX_PLUGIN_PATH}/vbox-*.t[gx]z 2>/dev/null | tail -n1)
+    VBOX_PKG_LOCAL_VER=$(ls -1Art ${VBOX_PLUGIN_PATH}/vbox-*.t[gx]z 2>/dev/null | tail -n1 | awk 'gsub(/.*vbox-|-unRAID.*/,"")')
+    VBOX_PKG_LOCAL_KERNEL=$(ls -1Art ${VBOX_PLUGIN_PATH}/vbox-*.t[gx]z 2>/dev/null | tail -n1 | awk 'gsub(/.*unRAID-|.t[gx]z.*/,"")')
+  elif [ "$UNRAID_OS_BITS" == "64" ] ; then
+    VBOX_PKG_LOCAL_FILENAME=$(ls -1Art ${VBOX_PLUGIN_PATH}/vbox-*x64.t[gx]z 2>/dev/null | tail -n1)
+    VBOX_PKG_LOCAL_VER=$(ls -1Art ${VBOX_PLUGIN_PATH}/vbox-*x64.t[gx]z 2>/dev/null | tail -n1 | awk 'gsub(/.*vbox-|-unRAID.*/,"")')
+    VBOX_PKG_LOCAL_KERNEL=$(ls -1Art ${VBOX_PLUGIN_PATH}/vbox-*x64.t[gx]z 2>/dev/null | tail -n1 | awk 'gsub(/.*unRAID-|-x64.t[gx]z.*/,"")')
+  fi
+  # Newest local Virtualbox Extension package filename and version
+  VBOX_EXT_LOCAL_FILENAME=$(ls -1Art ${VBOX_PLUGIN_PATH}/Oracle_VM_VirtualBox_Extension_Pack-*.vbox-extpack 2>/dev/null | tail -n1)
+  VBOX_EXT_LOCAL_VER=$(ls -1Art ${VBOX_PLUGIN_PATH}/Oracle_VM_VirtualBox_Extension_Pack-*.vbox-extpack 2>/dev/null | tail -n1 | awk 'gsub(/.*Extension_Pack-|.vbox-extpack.*/,"")')
+  
+  # Newest local Virtualbox Guest Additions package filename and version
+  VBOX_GAD_LOCAL_FILENAME=$(ls -1Art ${VBOX_PLUGIN_PATH}/VBoxGuestAdditions_*.iso 2>/dev/null | tail -n1)
+  VBOX_GAD_LOCAL_VER=$(ls -1Art ${VBOX_PLUGIN_PATH}/VBoxGuestAdditions_*.iso 2>/dev/null | tail -n1 | awk 'gsub(/.*VBoxGuestAdditions_|.iso.*/,"")')
+
+  # Check if VirtualBox installed and get version
+  if [ -f /opt/VirtualBox/VBoxManage ] ; then
+    # Get VirtualBox full version including revision
+    VBOX_PKG_INSTALLED_VER_TEMP=$(/opt/VirtualBox/VBoxManage -v)
+    # Extract VirtualBox version only
+    VBOX_PKG_INSTALLED_VER=${VBOX_PKG_INSTALLED_VER_TEMP%%r*}
+  else
+    VBOX_PKG_INSTALLED_VER="not_installed"
+  fi
+
+  # Check if VirtualBox Extension installed and get version
+  if [ -f /opt/VirtualBox/ExtensionPacks/Oracle_VM_VirtualBox_Extension_Pack/ExtPack.xml ] ; then
+    VBOX_EXT_INSTALLED_VER_TEMP=$(/opt/VirtualBox/VBoxManage list extpacks | grep -A 1 "Oracle VM VirtualBox Extension Pack" | tail -n 1)
+    VBOX_EXT_INSTALLED_VER=${VBOX_EXT_INSTALLED_VER_TEMP##* }
+  else
+    VBOX_EXT_INSTALLED_VER="not_installed"
+  fi
+
+  # Write status to update WEBUI
+  write_status
+}
+
+###################
+# D O W N L O A D
+###################
+virtualbox_download()
+{
+  # Check online status
+  virtualbox_getonlineversion
+
+  # Check if both packages hosting servers are online
+  if [ "$VBOX_PKG_HOSTING_SERVER_EXISTS" == "0" ] && [ "$VBOX_EXT_HOSTING_SERVER_EXISTS" == "0" ] ; then
+    # Check if latest version is available on server - do not allow download of just one package. this can "ruin" next installation by incompatibility of packages
+    if [ "$VBOX_PKG_ONLINE_EXIST" == "0" ] && [ "$VBOX_EXT_ONLINE_EXIST" == "0" ] ; then
+      # Check if kernel versions match and both latest versions of VirtualBox and VirtualBox Extension exist in local plugin folder
+      if [ "$VBOX_PKG_LOCAL_KERNEL" == "$UNRAID_KERNEL_VER" ] && [ -f ${VBOX_PLUGIN_PATH}/${VBOX_PKG_ONLINE_FILENAME} ] && [ -f ${VBOX_PLUGIN_PATH}/${VBOX_EXT_ONLINE_FILENAME} ] ; then
+        logit "Latest VirtualBox (v${VBOX_PKG_ONLINE_VER})/(k${UNRAID_KERNEL_VER}) and VirtualBox Extension (v${VBOX_EXT_ONLINE_VER}) exist in local plugin folder "
+      # Check which of latest versions of VirtualBox and VirtualBox Extension does not exist
+      else
+        if [ ! -f ${VBOX_PLUGIN_PATH}/${VBOX_PKG_ONLINE_FILENAME} ] ; then
+          logit "Latest VirtualBox (v${VBOX_PKG_ONLINE_VER})/(k${UNRAID_KERNEL_VER}) does not exist in local plugin folder - removing all existing local versions and downloading..."
+          rm --force ${VBOX_PLUGIN_PATH}/vbox-*-unRAID-*.t[gx]z
+          wget -nv --timeout=10 -O ${VBOX_PLUGIN_PATH}/${VBOX_PKG_ONLINE_FILENAME} ${VBOX_PKG_URL}/${VBOX_PKG_ONLINE_FILENAME} >/dev/null 2>&1
+          # VirtualBox package MD5 checksum from hosting server
+          VBOX_PKG_ONLINE_MD5=$(wget ${VBOX_PKG_HOSTING_SERVER} -q --timeout=10 -O - | grep -m 1 "${VBOX_PKG_ONLINE_FILENAME}" | awk 'gsub(/.*;|<\/.*/,"")')
+          # VirtualBox Extension package MD5 checksum from local plugin folder
+          if [ -f ${VBOX_PLUGIN_PATH}/${VBOX_PKG_ONLINE_FILENAME} ] ; then
+            VBOX_PKG_LOCAL_MD5=$(/usr/bin/md5sum ${VBOX_PLUGIN_PATH}/${VBOX_PKG_ONLINE_FILENAME} | cut -d' ' -f1)
+          else
+            VBOX_PKG_LOCAL_MD5=""
+          fi
+          if [ "$VBOX_PKG_LOCAL_MD5" == "" ] || [ "$VBOX_PKG_ONLINE_MD5" == "" ] ; then
+            logit "VirtualBox (v${VBOX_PKG_ONLINE_VER})/(k${UNRAID_KERNEL_VER}) missing MD5 information- removing all downloaded versions..."
+            rm --force ${VBOX_PLUGIN_PATH}/vbox-*-unRAID-*.t[gx]z
+          elif [ "$VBOX_PKG_LOCAL_MD5" == "$VBOX_PKG_ONLINE_MD5" ] ; then
+            logit "VirtualBox (v${VBOX_PKG_ONLINE_VER})/(k${UNRAID_KERNEL_VER}) MD5 verified as ${VBOX_PKG_LOCAL_MD5} - download OK"
+          else
+            logit "VirtualBox (v${VBOX_PKG_ONLINE_VER})/(k${UNRAID_KERNEL_VER}) MD5 not verified (online=${VBOX_PKG_ONLINE_MD5}, local=${VBOX_PKG_LOCAL_MD5}) - removing all downloaded versions..."
+            rm --force ${VBOX_PLUGIN_PATH}/vbox-*-unRAID-*.t[gx]z
+          fi
+        else
+          logit "Latest VirtualBox (v${VBOX_PKG_ONLINE_VER})/(k${UNRAID_KERNEL_VER}) exists locally - no need to download"
+        fi
+        if [ ! -f ${VBOX_PLUGIN_PATH}/${VBOX_EXT_ONLINE_FILENAME} ] ; then
+          logit "Latest VirtualBox Extension (v${VBOX_EXT_ONLINE_VER}) does not exist in local plugin folder - removing all existing local versions and downloading..."
+          rm --force ${VBOX_PLUGIN_PATH}/Oracle_VM_VirtualBox_Extension_Pack-*.vbox-extpack
+          wget -nv --timeout=10 -O ${VBOX_PLUGIN_PATH}/${VBOX_EXT_ONLINE_FILENAME} ${VBOX_EXT_URL}/${VBOX_EXT_ONLINE_FILENAME} >/dev/null 2>&1
+          # VirtualBox Extension package MD5 checksum from hosting server
+          VBOX_EXT_ONLINE_MD5=$(wget ${VBOX_EXT_URL}/MD5SUMS -q --timeout=10 -O - | grep -m 1 "${VBOX_EXT_ONLINE_FILENAME}" | cut -d' ' -f1)
+          # VirtualBox Extension package MD5 checksum from local plugin folder
+          if [ -f ${VBOX_PLUGIN_PATH}/${VBOX_EXT_ONLINE_FILENAME} ] ; then
+            VBOX_EXT_LOCAL_MD5=$(/usr/bin/md5sum ${VBOX_PLUGIN_PATH}/${VBOX_EXT_ONLINE_FILENAME} | cut -d' ' -f1)
+          else
+            VBOX_EXT_LOCAL_MD5=""
+          fi
+          if [ "$VBOX_EXT_LOCAL_MD5" == "" ] || [ "$VBOX_EXT_ONLINE_MD5" == "" ] ; then
+            logit "VirtualBox Extension (v${VBOX_EXT_ONLINE_VER}) missing MD5 information - removing all downloaded versions..."
+            rm --force ${VBOX_PLUGIN_PATH}/Oracle_VM_VirtualBox_Extension_Pack-*.vbox-extpack
+          elif [ "$VBOX_EXT_LOCAL_MD5" == "$VBOX_EXT_ONLINE_MD5" ] ; then
+            logit "VirtualBox Extension (v${VBOX_EXT_ONLINE_VER}) MD5 verified as ${VBOX_EXT_LOCAL_MD5} - download OK"
+          else
+            logit "VirtualBox Extension (v${VBOX_EXT_ONLINE_VER}) MD5 not verified (online=${VBOX_EXT_ONLINE_MD5}, local=${VBOX_EXT_LOCAL_MD5}) - removing all downloaded versions..."
+            rm --force ${VBOX_PLUGIN_PATH}/Oracle_VM_VirtualBox_Extension_Pack-*.vbox-extpack
+          fi
+        else
+          logit "Latest VirtualBox Extension (v${VBOX_EXT_ONLINE_VER}) exists locally - no need to download"
+        fi
+      fi
+    else
+      logit "One or both of VirtualBox or VirtualBox Extension packages do not exist online - Cannot download new packages"
+    fi
+  else
+      logit "One or both of VirtualBox or VirtualBox Extension hosting servers are OFFLINE - Cannot check for new packages versions"
+  fi
+}
+
+###################
+# D O W N L O A D G A D
+###################
+virtualbox_download_gad()
+{
+  # Check online status
+  virtualbox_getonlineversion
+
+  # Check if Guest Additions package hosting server is online
+  if [ "$VBOX_GAD_HOSTING_SERVER_EXISTS" == "0" ] ; then
+    # Check if latest version is available on server
+    if [ "$VBOX_GAD_ONLINE_EXIST" == "0" ] ; then
+      # Check if latest version of Guest Additions does not exist
+      if [ ! -f ${VBOX_PLUGIN_PATH}/${VBOX_GAD_ONLINE_FILENAME} ] ; then
+        logit "Latest VirtualBox Guest Additions (v${VBOX_GAD_ONLINE_VER}) does not exist in local plugin folder, removing all existing local versions and downloading..."
+        rm --force ${VBOX_PLUGIN_PATH}/VBoxGuestAdditions_*.iso
+        wget -nv --timeout=10 -O ${VBOX_PLUGIN_PATH}/${VBOX_GAD_ONLINE_FILENAME} ${VBOX_GAD_URL}/${VBOX_GAD_ONLINE_FILENAME} >/dev/null 2>&1
+        # VirtualBox Extension package MD5 checksum from hosting server
+        VBOX_GAD_ONLINE_MD5=$(wget ${VBOX_GAD_URL}/MD5SUMS -q --timeout=10 -O - | grep -m 1 "${VBOX_GAD_ONLINE_FILENAME}" | cut -d' ' -f1)
+        # Virtualbox Guest Additions package MD5 checksum from local plugin folder
+        if [ -f ${VBOX_PLUGIN_PATH}/${VBOX_GAD_ONLINE_FILENAME} ] ; then
+          VBOX_GAD_LOCAL_MD5=$(/usr/bin/md5sum ${VBOX_PLUGIN_PATH}/${VBOX_GAD_ONLINE_FILENAME} | cut -d' ' -f1)
+        else
+          VBOX_GAD_LOCAL_MD5=""
+        fi
+        if [ "$VBOX_GAD_LOCAL_MD5" == "" ] || [ "$VBOX_GAD_ONLINE_MD5" == "" ] ; then
+          logit "VirtualBox Guest Additions (v${VBOX_GAD_ONLINE_VER}) missing MD5 information - removing all downloaded versions..."
+          rm --force ${VBOX_PLUGIN_PATH}/VBoxGuestAdditions_*.iso
+        elif [ "$VBOX_GAD_LOCAL_MD5" == "$VBOX_GAD_ONLINE_MD5" ] ; then
+          logit "VirtualBox Guest Additions (v${VBOX_GAD_ONLINE_VER}) MD5 verified as ${VBOX_GAD_LOCAL_MD5} - download OK"
+        else
+          logit "VirtualBox Guest Additions (v${VBOX_GAD_ONLINE_VER}) MD5 not verified (online=${VBOX_GAD_ONLINE_MD5}, local=${VBOX_GAD_LOCAL_MD5}) - removing all downloaded versions..."
+          rm --force ${VBOX_PLUGIN_PATH}/VBoxGuestAdditions_*.iso
+        fi
+      else
+        logit "Latest VirtualBox Guest Additions (v${VBOX_GAD_ONLINE_VER}) exists locally - no need to download"
+      fi
+    else
+      logit "VirtualBox Guest Additions package does not exist online - Cannot download new package"
+    fi
+  else
+      logit "VirtualBox Guest Additions hosting server is OFFLINE - Cannot check for new package version"
+  fi
+}
+
+###################
+# I N S T A L L
+###################
+virtualbox_install()
+{
+  virtualbox_getlocalversion
+
+  # Check if VirtualBox package matches unRAID kernel version
+  if [ "$VBOX_PKG_LOCAL_KERNEL" == "$UNRAID_KERNEL_VER" ] ; then
+    #  Check if  VirtualBox and VirtualBox Extension packages are the same version and both exist (have version)
+    if [ "$VBOX_PKG_LOCAL_VER" == "$VBOX_EXT_LOCAL_VER" ] && [ "$VBOX_PKG_LOCAL_VER" != "" ] && [ "$VBOX_EXT_LOCAL_VER" != "" ] ; then
+      # Check if VirtualBox local and installed version are the same 
+      if [ "$VBOX_PKG_LOCAL_VER" == "$VBOX_PKG_INSTALLED_VER" ] ; then
+        logit "Virtualbox package (v${VBOX_PKG_INSTALLED_VER}) already installed - skipped installation"
+      else
+        logit "Installing Virtualbox package (v${VBOX_PKG_LOCAL_VER})..."
+
+        # Remove existing symlink
+        unlink /root/.VirtualBox
+        rm --force --recursive /root/.VirtualBox
+
+        # It doesn't matter if currently installed VirtualBox version is different because there is a "upgradepkg --install-new" command
+        upgradepkg --install-new ${VBOX_PKG_LOCAL_FILENAME}
+
+        virtualbox_getlocalversion
+        if [ "$VBOX_PKG_INSTALLED_VER" == "not_installed" ] ; then
+          logit "Installation of Virtualbox package failed"
+        else
+          logit "Installation of Virtualbox package v$VBOX_PKG_INSTALLED_VER succeeded"
+        fi
+        
+        # Check if VirtualBox symlink location is valid
+        if [ "$VBOX_SYMLINK_LOCATION" != "" ] ; then
+          if [ -d $VBOX_SYMLINK_LOCATION ] ; then
+            # Remove existing symlink as created by install package
+            unlink /root/.VirtualBox
+            rm --force --recursive /root/.VirtualBox
+            # Create symlink to requested location
+            ln --symbolic --force $VBOX_SYMLINK_LOCATION /root/.VirtualBox
+            logit "Symbolically linked $VBOX_SYMLINK_LOCATION to /root/.VirtualBox"
+          else
+            logit "$VBOX_SYMLINK_LOCATION does not exists - Cannot change VirtualBox symlink"
+          fi
+        else
+          logit "VBOX_SYMLINK_LOCATION is not valid - using default VirtualBox symlink /boot/custom/vbox"
+        fi
+      fi
+
+      # Check if VirtualBox Extension local and installed version are the same 
+      if [ "$VBOX_EXT_LOCAL_VER" == "$VBOX_EXT_INSTALLED_VER" ] ; then
+        logit "Virtualbox Extension package (v${VBOX_EXT_INSTALLED_VER}) already installed - skipped installation"
+      else
+        logit "Installing Virtualbox Extension package (v${VBOX_EXT_LOCAL_VER})..."
+        # If Extension package not installed then regular installation
+        if [ "$VBOX_EXT_INSTALLED_VER" == "not_installed" ] ; then
+          /opt/VirtualBox/VBoxManage extpack install ${VBOX_EXT_LOCAL_FILENAME}
+          # Extension package already installed - need to run cleanup and install --replace
+        else
+          /opt/VirtualBox/VBoxManage extpack cleanup
+          /opt/VirtualBox/VBoxManage extpack install --replace ${VBOX_EXT_LOCAL_FILENAME}
+        fi
+        virtualbox_getlocalversion
+        if [ "$VBOX_EXT_INSTALLED_VER" == "not_installed" ] ; then
+          logit "Installation of Virtualbox Extension package failed"
+        else
+          logit "Installation of Virtualbox Extension package v$VBOX_EXT_INSTALLED_VER succeeded"
+        fi
+      fi
+    #  VirtualBox and VirtualBox Extension packages are not the same version
+    else
+      logit "VirtualBox (v$VBOX_PKG_LOCAL_VER) is not compatible with VirtualBox Extension (v$VBOX_EXT_LOCAL_VER) or one is missing - no plugin installed"
+    fi
+  # VirtualBox package does not match unRAID kernel version
+  else
+    logit "VirtualBox package kernel v${VBOX_PKG_LOCAL_KERNEL} does not match unRAID kernel v${UNRAID_KERNEL_VER} - no plugin installed"
+  fi
+}
+
+###################
+# U P D A T E
+###################
+virtualbox_update()
+{
+  # Download latest VirtualBox and VirtualBox Extension packages
+  virtualbox_download
+  # Get local and installed VirtualBox and VirtualBox Extension packages versions
+  virtualbox_getlocalversion
+
+  # Check if newer version downloaded
+  if [ "$VBOX_PKG_LOCAL_VER" != "$VBOX_PKG_INSTALLED_VER" ] || [ "$VBOX_EXT_LOCAL_VER" != "$VBOX_EXT_INSTALLED_VER" ] ; then
+    virtualbox_stop
+    sleep 5
+    virtualbox_install
+    virtualbox_start
+    logit "Updated VirtualBox to version $VBOX_PKG_ONLINE_VER"
+  else
+    logit "No VirtualBox update done - no new version"
+  fi
+}
+
+###################
+# S T A R T V B O X W E B S R V
+###################
+virtualbox_start_vboxwebsrv()
+{
+  # Get local and installed VirtualBox and VirtualBox Extension packages versions
+  virtualbox_getlocalversion
+
+  # Check if both VirtualBox and VirtualBox Extension packages are installed
+  if [ "$VBOX_PKG_INSTALLED_VER" != "not_installed" ] && [ "$VBOX_EXT_INSTALLED_VER" != "not_installed" ] ; then
+    # Check if PIDFILE folder does not already exist
+    if [ ! -e $VBOXWEBSRV_PIDFILE_FOLDER ]; then
+      mkdir -m 0770 $VBOXWEBSRV_PIDFILE_FOLDER
+    fi
+    # Check If PID file exists
+    if [ -f ${VBOXWEBSRV_PIDFILE_FOLDER}/${VBOXWEBSRV_PIDFILE} ]; then
+      logit "vboxwebsrv service already running"
+    #PID file doesn't exist - run vboxwebsrv
+    else
+      /opt/VirtualBox/VBoxManage setproperty websrvauthlibrary null
+      logit "/opt/VirtualBox/VBoxManage setproperty websrvauthlibrary null"
+      if [ "$VBOXWEBSRV_VERBOSE" != "false" ] ; then VERBOSE="--verbose"; else VERBOSE=""; fi
+      if [ "$VBOXWEBSRV_HOST_IP" != "" ] ; then HOST_IP="-H $VBOXWEBSRV_HOST_IP" ; else HOST_IP=""; fi
+      if [ "$VBOXWEBSRV_HOST_PORT" != "" ] ; then HOST_PORT="-p $VBOXWEBSRV_HOST_PORT"; else HOST_PORT=""; fi
+      if [ "$VBOXWEBSRV_LOGROTATE" != "" ] ; then LOGROTATE="--logrotate $VBOXWEBSRV_LOGROTATE"; else LOGROTATE=""; fi
+      if [ "$VBOXWEBSRV_LOGFILE" != "" ] ; then LOGFILE="--logfile $VBOXWEBSRV_LOGFILE"; else LOGFILE='/dev/null'; fi
+      if [ "$VBOXWEBSRV_LOGSIZE" != "" ] ; then LOGSIZE="--logsize $VBOXWEBSRV_LOGSIZE"; else LOGSIZE='/dev/null'; fi
+      if [ "$VBOXWEBSRV_LOGINTERVAL" != "" ] ; then LOGINTERVAL="--loginterval $VBOXWEBSRV_LOGINTERVAL"; else LOGINTERVAL='/dev/null'; fi
+      vboxwebsrv -b $VERBOSE $HOST_IP $HOST_PORT --pidfile ${VBOXWEBSRV_PIDFILE_FOLDER}/${VBOXWEBSRV_PIDFILE} $LOGROTATE $LOGSIZE $LOGINTERVAL $LOGFILE > /dev/null 2>&1
+      logit "vboxwebsrv service started"
+    fi
+  else
+    logit "VirtualBox and/or VirtualBox Extension not installed - cannot start vboxwebsrv"
+  fi
+}
+
+###################
+# S T A R T V M S
+###################
+virtualbox_start_vms()
+{
+  # Get local and installed VirtualBox and VirtualBox Extension packages versions
+  virtualbox_getlocalversion
+
+  # Check if both VirtualBox and VirtualBox Extension packages are installed
+  if [ "$VBOX_PKG_INSTALLED_VER" != "not_installed" ] && [ "$VBOX_EXT_INSTALLED_VER" != "not_installed" ] ; then
+    VBOX_RUNNING_VMS=$(/opt/VirtualBox/VBoxManage list runningvms)
+    if [ "$VBOX_RUNNING_VMS" == "" ] ; then
+      # Start Virtual Machines according to START_VMS_ON_START parameter
+      case $START_VMS_ON_START in
+        "false")
+          logit "Plugin configured not to run any Virtual Machines on start"
+        ;;
+        "all")
+          # Get a list of all available Virtual Machines
+          VBOX_AVAILABLE_VMS=$(/opt/VirtualBox/VBoxManage list vms)
+          # Check if list of all available Virtual Machines is not empty
+          if [ "$VBOX_AVAILABLE_VMS" != "" ] ; then
+            # Start all available Virtual Machines
+            /opt/VirtualBox/VBoxManage list vms | cut -d\" -f2  | while read VM; do
+              logit "Starting Virtual Machine: $VM ..."
+              /opt/VirtualBox/VBoxManage startvm "$VM" --type headless
+            done
+            logit "All available Virtual Machines were started"
+          else
+            logit "No Virtual Machines available to start"
+          fi
+        ;;
+        "previous")
+          # Check if session.cfg file exists
+          if [ -f ${VBOX_PLUGIN_PATH}/vms_session.cfg ] ; then
+            # Get a list of all Virtual Machines from previous session
+            VBOX_SESSION_VMS=$(cat ${VBOX_PLUGIN_PATH}/vms_session.cfg)
+          # If no file exists set previous session as empty
+          else
+            VBOX_SESSION_VMS=""
+          fi
+          if [ "$VBOX_SESSION_VMS" != "" ] ; then
+            # Start previous session's Virtual Machines
+            cat ${VBOX_PLUGIN_PATH}/vms_session.cfg | cut -d\" -f2  | while read VM; do
+              logit "Starting Virtual Machine: $VM ..."
+              /opt/VirtualBox/VBoxManage startvm "$VM" --type headless
+            done
+            logit "All available Virtual Machines from previous session were started"
+          else
+            logit "No Virtual Machines in previous session (list is empty)"
+          fi
+        ;;
+        *)
+      esac
+    else
+      logit "There are already running Virtual Machines - skipping start of multiple Virtual Machines"
+    fi
+  else
+    logit "VirtualBox and/or VirtualBox Extension not installed - cannot start Virtual Machines"
+  fi
+}
+
+###################
+# S T A R T
+###################
+virtualbox_start()
+{
+  virtualbox_start_vboxwebsrv
+  virtualbox_start_vms
+}
+
+###################
+# S T O P
+###################
+virtualbox_stop()
+{
+  # Check if VirtualBox package installed
+  if [ "$VBOX_PKG_INSTALLED_VER" != "not_installed" ] && [ -f "/opt/VirtualBox/VBoxManage" ] ; then
+    # Get running Virtual Machines and save session
+    VBOX_RUNNING_VMS=$(/opt/VirtualBox/VBoxManage list runningvms)
+    # Check if any Virtual Machines are running
+    if [ "$VBOX_RUNNING_VMS" != "" ] ; then
+      # If some Virtual Machines are running save new session - otherwise keep previous session - this is to avoid erasing of session upon unRAID unmounting if VirtualBox has already stopped
+      /opt/VirtualBox/VBoxManage list runningvms > ${VBOX_PLUGIN_PATH}/vms_session.cfg
+      # Stop and savestate of all running VMs
+      /opt/VirtualBox/VBoxManage list runningvms | cut -d\" -f2  | while read VM; do
+        logit "Saving state of Virtual Machine: $VM ..."
+        /opt/VirtualBox/VBoxManage controlvm "$VM" savestate
+      done
+      logit "All running Virtual Machines were saved"
+    else
+      logit "No Virtual Machines running - nothing to save"
+    fi
+  else
+    logit "Virtualbox not installed - nothing to stop"
+  fi
+
+  # Check if vboxwebsrv running - existance of PID file
+  if [ -f ${VBOXWEBSRV_PIDFILE_FOLDER}/${VBOXWEBSRV_PIDFILE} ]; then
+    kill -9 `cat ${VBOXWEBSRV_PIDFILE_FOLDER}/${VBOXWEBSRV_PIDFILE}`
+    logit "vboxwebsrv service stopped"
+    rm --force ${VBOXWEBSRV_PIDFILE_FOLDER}/${VBOXWEBSRV_PIDFILE}
+  else 
+    logit "vboxwebsrv not running - nothing to stop"
+  fi
+}
+
+###################
+# R E S T A R T
+###################
+virtualbox_restart()
+{
+  virtualbox_stop
+  sleep 5
+  virtualbox_start
+}
+
+###################
+# B O O T
+###################
+virtualbox_boot()
+{
+  # Check if new plugin should be updated during mount
+  if [ "$UPGRADE_PLG_ON_BOOT" == "true" ] ; then
+    "Checking for VirtualBox plugin update during array mount ..."
+    virtualbox_updateplg
+  # Plugin update should not be done during mount
+  else
+    logit "VirtualBox plugin update during array mount is disabled"
+  fi
+
+  # Check if VirtualBox packages should be updated during mount
+  if [ "$UPGRADE_ON_BOOT" == "true" ] ; then
+    logit "Checking for VirtualBox packages update during array mount ..."
+    virtualbox_download
+  # VirtualBox packages should not be updated during mount
+  else
+    logit "VirtualBox packages update during array mount is disabled"
+  fi
+
+  # Check if VirtualBox packages should be installed during mount
+  if [ "$INSTALL_ON_BOOT" == "true" ] ; then
+    logit "Installing VirtualBox packages during array mount ..."
+    virtualbox_install
+
+    # Start vboxwebsrv and Virtual Machines if option is set to "true" (only relevant if packages were set to be installed)
+    if [ "$START_ON_ARRAY_MOUNT" == "true" ] ; then
+      virtualbox_start
+    fi
+  else
+    logit "VirtualBox installation during array mount is disabled"
+  fi
+}
+
+#################
+# G E T P L G V E R S I O N S
+#################
+virtualbox_getplgversions()
+{
+  # VirtualBox Plugin hosting server
+  VBOX_PLG_HOSTING_SERVER="https://github.com/theone11/virtualbox_plugin"
+  # VirtualBox Plugin hosting server URL + filename
+  VBOX_PLG_URL="https://raw.github.com/theone11/virtualbox_plugin/master/virtualbox.plg"
+  # Get online/offline status of Virtualbox Plugin hosting server
+  wget --quiet --spider --no-check-certificate --timeout=10 $VBOX_PLG_HOSTING_SERVER
+  VBOX_PLG_HOSTING_SERVER_EXISTS=$?
+  # Check if Virtualbox Plugin hosting server is online
+  if [ "$VBOX_PLG_HOSTING_SERVER_EXISTS" == "0" ] ; then
+    # Get latest version number from server
+    VBOX_PLG_ONLINE_VER=$(wget --no-check-certificate --quiet --timeout=10 $VBOX_PLG_URL -O - | grep -m 1 "Release Version v" | awk 'gsub(/.*Release Version v|*/,"")')
+  else
+    # Set version to server_down - does not exist
+    VBOX_PLG_ONLINE_VER="server_down"
+  fi
+  # Check if VirtualBox Plugin file exists online
+  wget --quiet --spider --no-check-certificate --timeout=10 $VBOX_PLG_URL
+  VBOX_PLG_ONLINE_EXIST=$?
+
+  # Check if local VirtualBox Plugin file exists
+  if [ -f /boot/config/plugins/virtualbox.plg ] ; then
+    # Get existing version number from local file
+    VBOX_PLG_LOCAL_VER=$(grep -m 1 "Release Version v" /boot/config/plugins/virtualbox.plg | awk 'gsub(/.*Release Version v|*/,"")')
+  else
+    # Set version to no_local_plg - does not exist
+    VBOX_PLG_LOCAL_VER="no_local_plg"
+  fi
+
+  # Write status to update WEBUI
+  write_status
+}
+
+#######################
+# U P D A T E P L G
+#######################
+virtualbox_updateplg()
+{
+  # Get online and local plugin versions
+  virtualbox_getplgversions
+
+  # Check if Plugin hosting server is online
+  if [ "$VBOX_PLG_HOSTING_SERVER_EXISTS" == "0" ] ; then
+    # Check if latest version is available on server
+    if [ "$VBOX_PLG_ONLINE_EXIST" == "0" ] ; then
+      # Check if online and local versions are different
+      if [ "$VBOX_PLG_ONLINE_VER" != "$VBOX_PLG_LOCAL_VER" ] ; then
+        # Check if local plugin doesn't exist
+        if [ "$VBOX_PLG_LOCAL_VER" == "no_local_plg" ] ; then
+          logit "Local plugin does not exist. Installing latest plugin version from hosting server (v$VBOX_PLG_ONLINE_VER)"
+        else
+          logit "Upgrading local plugin (v$VBOX_PLG_LOCAL_VER) to hosting server plugin (v$VBOX_PLG_ONLINE_VER)"
+        fi
+        # Download new VirtualBox Plugin version
+        wget --no-check-certificate --quiet --timeout=10 $VBOX_PLG_URL -O /boot/config/plugins/virtualbox.plg
+        # Install new VirtualBox Plugin
+        /usr/local/sbin/installplg /boot/config/plugins/virtualbox.plg
+        logit "New/Updated plugin installation complete"
+      # Virtualbox plugin hosting server is offline
+      else
+        logit "Local plugin is the same version as on hosting server (v$VBOX_PLG_LOCAL_VER)"
+      fi
+    # Web version and local version are the same
+    else
+      logit "Plugin does not exist on plugin hosting server - Cannot download new plugin"
+    fi
+  else
+    logit "VirtualBox Plugin hosting servers is OFFLINE - Cannot check for new packages versions"
+  fi
+}
+
+#######################
+# S T A R T V M
+#######################
+virtualbox_startvm()
+{
+  logit "Starting Virtual Machine: $1 ..."
+  # Start selected Virtual Machine
+  /opt/VirtualBox/VBoxManage startvm $1 --type headless
+  # Update running Virtual Machines session
+  /opt/VirtualBox/VBoxManage list runningvms > ${VBOX_PLUGIN_PATH}/vms_session.cfg
+}
+
+#######################
+# S A V E S T A T E V M
+#######################
+virtualbox_savestatevm()
+{
+  logit "Saving state of Virtual Machine: $1 ..."
+  # Savestate for selected Virtual Machine
+  /opt/VirtualBox/VBoxManage controlvm $1 savestate
+  # Update running Virtual Machines session
+  /opt/VirtualBox/VBoxManage list runningvms > ${VBOX_PLUGIN_PATH}/vms_session.cfg
+}
+
+###################
+# U P D A T E C F G
+###################
+virtualbox_updatecfg()
+{
+  # Arguments file used for WEBUI configuration update
+  ARGUMENTS_FILE="/usr/local/emhttp/plugins/virtualbox/virtualbox.args"
+
+  [ -f $ARGUMENTS_FILE ] && source $ARGUMENTS_FILE
+
+  INSTALL_ON_BOOT=$INSTALL_ON_BOOT_NEW
+  UPGRADE_ON_BOOT=$UPGRADE_ON_BOOT_NEW
+  UPGRADE_PLG_ON_BOOT=$UPGRADE_PLG_ON_BOOT_NEW
+  START_ON_ARRAY_MOUNT=$START_ON_ARRAY_MOUNT_NEW
+  START_VMS_ON_START=$START_VMS_ON_START_NEW
+  VBOXWEBSRV_HOST_IP=$VBOXWEBSRV_HOST_IP_NEW
+  VBOXWEBSRV_HOST_PORT=$VBOXWEBSRV_HOST_PORT_NEW
+  VBOXWEBSRV_LOGFILE=$VBOXWEBSRV_LOGFILE_NEW
+  VBOXWEBSRV_VERBOSE=$VBOXWEBSRV_VERBOSE_NEW
+  VBOXWEBSRV_LOGROTATE=$VBOXWEBSRV_LOGROTATE_NEW
+  VBOXWEBSRV_LOGSIZE=$VBOXWEBSRV_LOGSIZE_NEW
+  VBOXWEBSRV_LOGINTERVAL=$VBOXWEBSRV_LOGINTERVAL_NEW
+
+  # Check if symlink location changed AND if new symlink location is valid
+  if [ "$VBOX_SYMLINK_LOCATION_NEW" != "$VBOX_SYMLINK_LOCATION" ] && [ "$VBOX_SYMLINK_LOCATION_NEW" != "" ] ; then
+    # Check if new symbolic link location exists
+    if [ ! -d $VBOX_SYMLINK_LOCATION_NEW ] ; then
+      # Create new symbolic link location
+      mkdir --parents --mode 0777 $VBOX_SYMLINK_LOCATION_NEW
+      logit "New symbolic link destination folder $VBOX_SYMLINK_LOCATION_NEW created"
+    fi
+    # Move existing symlink to new symlink
+    unlink /root/.VirtualBox
+    rm --force --recursive /root/.VirtualBox
+    ln --symbolic --force $VBOX_SYMLINK_LOCATION_NEW /root/.VirtualBox
+    logit "Symbolically linked $VBOX_SYMLINK_LOCATION_NEW to /root/.VirtualBox"
+    # Check if existing VirtualBox symlink location is valid
+    if [ "$VBOX_SYMLINK_LOCATION" != "" ] ; then
+      # Check if current symlink location exists
+      if [ -d $VBOX_SYMLINK_LOCATION ] ; then
+        # Move any existing files to new symlink location and delete existing symlink location
+        cp --force --recursive ${VBOX_SYMLINK_LOCATION}/* ${VBOX_SYMLINK_LOCATION_NEW}
+        rm --force --recursive ${VBOX_SYMLINK_LOCATION}
+        logit "Moved existing files from ${VBOX_SYMLINK_LOCATION} (and removed folder) to ${VBOX_SYMLINK_LOCATION_NEW}"
+      else
+        logit "$VBOX_SYMLINK_LOCATION does not exist - No files to move to new symlink location"
+      fi
+    else
+      logit "VBOX_SYMLINK_LOCATION not valid - Cannot move file to new symlink location"
+    fi
+    VBOX_SYMLINK_LOCATION=$VBOX_SYMLINK_LOCATION_NEW
+  fi
+
+  write_cfg
+}
+###################
+# M A I N
+###################
+
+# Get unRAID linux kernel version
+UNRAID_KERNEL_VER=$(uname -r | cut -d'-' -f1)
+# Get unRAID OS type 32/64 bit
+UNRAID_OS_BITS=$(getconf LONG_BIT)
+# VirtualBox plugin folder on boot flash drive
+VBOX_PLUGIN_PATH="/boot/config/plugins/virtualbox"
+# VirtualBox status file used for WEBUI updates
+STATUS_FILE="/usr/local/emhttp/plugins/virtualbox/virtualbox.status"
+#vboxwebsrv PID file location
+VBOXWEBSRV_PIDFILE_FOLDER="/var/run/vboxwebsrv"
+#vboxwebsrv PID filename
+VBOXWEBSRV_PIDFILE="vboxwebsrv.pid"
+
+[ -f ${VBOX_PLUGIN_PATH}/virtualbox.cfg ] && source ${VBOX_PLUGIN_PATH}/virtualbox.cfg
+[ -f $STATUS_FILE ] && source $STATUS_FILE
+
+case "$1" in
+  'updatecfg')
+    virtualbox_updatecfg
+  ;;
+  'download')
+    virtualbox_download
+  ;;
+  'downloadgad')
+    virtualbox_download_gad
+  ;;
+  'install')
+    virtualbox_install
+  ;;
+  'start_vboxwebsrv')
+    virtualbox_start_vboxwebsrv
+  ;;
+  'start_vms')
+    virtualbox_start_vms
+  ;;
+  'start')
+    virtualbox_start
+  ;;
+  'stop')
+    virtualbox_stop
+  ;;
+  'restart')
+    virtualbox_restart
+  ;;
+  'update')
+    virtualbox_update
+  ;;
+  'boot')
+    virtualbox_boot
+  ;;
+  'updateplg')
+    virtualbox_updateplg
+  ;;
+  'writecfg')
+    write_cfg
+  ;;
+  'writestatus')
+    write_status
+  ;;
+  'getonlineversion')
+    virtualbox_getonlineversion
+  ;;
+  'getlocalversion')
+    virtualbox_getlocalversion
+  ;;
+  'getplgversions')
+    virtualbox_getplgversions
+  ;;
+  'start_vm')
+    virtualbox_startvm "$2"
+  ;;
+  'savestate_vm')
+    virtualbox_savestatevm "$2"
+  ;;
+
+  *)
+    echo "usage $0 "
+    echo ""
+    echo "         download | install | update | updateplg"
+    echo ""
+    echo "         start_vboxwebsrv | start_vms | start | stop | restart"
+    echo ""
+    echo "         getonlineversion | getlocalversion | getplgversions"
+    echo ""
+    echo "         startvm | savestatevm"
+    echo ""
+    echo "         writecfg | updatecfg | writestatus"
+    echo ""
+    echo "         boot"
+esac
