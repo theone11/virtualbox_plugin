@@ -3,10 +3,11 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name        "virtualbox">
 <!ENTITY author      "Dan Kessler">
-<!ENTITY version     "2015.04.22-1">
+<!ENTITY version     "2015.06.05">
+<!ENTITY launch      "Settings/&name;">
 <!ENTITY pluginURL   "https://raw.githubusercontent.com/theone11/virtualbox_plugin/master/&name;.plg">
-<!ENTITY packageVER  "v1.2">
-<!ENTITY packageMD5  "5d7114ba4b96fc709251ed3f33c59ced">
+<!ENTITY packageVER  "&version;">
+<!ENTITY packageMD5  "343816486a6bfb75c5d7b4a712f09c85">
 <!ENTITY packagefile "&name;-package-&packageVER;.tar.gz">
 <!ENTITY packageURL  "https://github.com/theone11/virtualbox_plugin/raw/master/&packagefile;">
 <!ENTITY pluginLOC   "/boot/config/plugins/&name;">
@@ -16,14 +17,19 @@
 <PLUGIN  name="&name;"
          author="&author;"
          version="&version;"
+         launch="&launch;"
          pluginURL="&pluginURL;"
 >
 
 <!--
-# Release Version v2015.04.22-1
+# Release Version v2015.06.05
 -->
 
 <CHANGES>
+###2015.06.xx
+- Added launch option from plugin manager (unRAID v6)
+- Changed package version to same as plugin version
+- Fixed - Inadvertently Cleared vboxwebsrv settings - Returned onsubmit="validateForm();" to form submission
 ###2015.04.22-1
 - Fixed unRAID v5 compatability
 ###2015.04.22
