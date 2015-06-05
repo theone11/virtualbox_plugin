@@ -26,7 +26,7 @@
 -->
 
 <CHANGES>
-###2015.06.xx
+###2015.06.05
 - Added launch option from plugin manager (unRAID v6)
 - Changed package version to same as plugin version
 - Fixed - Inadvertently Cleared vboxwebsrv settings - Returned onsubmit="validateForm();" to form submission
