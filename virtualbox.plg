@@ -3,11 +3,11 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name        "virtualbox">
 <!ENTITY author      "Dan Kessler">
-<!ENTITY version     "2015.06.07">
+<!ENTITY version     "2015.09.17">
 <!ENTITY launch      "Settings/&name;">
 <!ENTITY pluginURL   "https://raw.githubusercontent.com/theone11/virtualbox_plugin/master/&name;.plg">
 <!ENTITY packageVER  "&version;">
-<!ENTITY packageMD5  "e5e0d5a0126b0d81024a3d86c30aa191">
+<!ENTITY packageMD5  "c4453c3201051a837c68f12cc42619f9">
 <!ENTITY packagefile "&name;-package-&packageVER;.tar.gz">
 <!ENTITY packageURL  "https://github.com/theone11/virtualbox_plugin/raw/master/&packagefile;">
 <!ENTITY pluginLOC   "/boot/config/plugins/&name;">
@@ -22,41 +22,43 @@
 >
 
 <!--
-# Release Version v2015.06.07
+# Release Version v2015.09.17
 -->
 
 <CHANGES>
-#2015.06.07
+###2015.09.17
+- Added unRAID 6.1 compatibility and keep backward compatibility
+###2015.06.07
 - Changed start and stop events to "started" and "stopping_svcs" instead of "disks_mounted" and "unmounting_disks"
 - Moved plugin icon to "User Utilities" section (unRAID v6)
-#2015.06.05
+###2015.06.05
 - Added launch option from plugin manager (unRAID v6)
 - Changed package version to same as plugin version
 - Fixed - Inadvertently Cleared vboxwebsrv settings - Returned onsubmit="validateForm();" to form submission
-#2015.04.22-1
-- Fixed unRAID v5 compatability
-#2015.04.22
+###2015.04.22-1
+- Fixed unRAID v5 compatibility
+###2015.04.22
 - Added newline between each log line during install/remove scripts
 - Added settings page icon
 - Changed package so that it extracts directly to all needed folders (/etc/rc.d, /usr/local/emhttp/plugins/virtualbox)
 - Add version to PAGE file automatically so it and package don't need to be modified on every change
-#2015.04.21-1
-- Fixed unRAID v5 compatability
-#2015.04.21
+###2015.04.21-1
+- Fixed unRAID v5 compatibility
+###2015.04.21
 - Added support for unRAID v6 Plugin Manager and Architecture
 - Added support for tgz and txz compiled packages
-#0.5.7
+###0.5.7
 - Reduced plugin load time by reducing network accessing when checking online versions
-# 0.5.6
+### 0.5.6
 - Added MD5 checksum verification for all downloaded packages immediately after download - delete download if MD5 cannot be verified or fails verification
-# 0.5.5
+### 0.5.5
 - Fixed kernel version number extraction from online package
-# 0.5.4
+### 0.5.4
 - Changed unRAID compiled VirtualBox version availability and presentation in WEBUI (compatible and latest)
 - Changed timeout to 10 seconds (instead of 60)
 - Added plugin forum link to WEBUI
 - Automatic support of 32/64bit packages depending on OS
-# 0.5.3
+### 0.5.3
 - Added changelog history
 - Enabled changing of Mount and Startup options also when virtualbox is running - They impact only during plugin start
 - Only if VirtualBox installed give option to update from local or online versions if exist otherwise download options
@@ -66,35 +68,35 @@
 - Duplicated all "logger" output also to regular output "echo"
 - Added --timeout=10 on all wget commands
 - Minor UI Change
-# 0.5.2    - Added Latest Release version available from VirtualBox.org (not necessarily existing for unRAID yet)
+### 0.5.2    - Added Latest Release version available from VirtualBox.org (not necessarily existing for unRAID yet)
 - Local versions extraction
 - Cosmetic changes
-# 0.5.1    - Fixed bottom of page is sometimes not visible due to unRAID progressframe
-# 0.5      - Added option to download GuestAdditions Package
+### 0.5.1    - Fixed bottom of page is sometimes not visible due to unRAID progressframe
+### 0.5      - Added option to download GuestAdditions Package
 - Added option to change /boot/custom/vbox to different location including moving of files - New parameter in configuration
 - Changed configuration update code
 - When upgrading from older version plugins the following line should be added to cfg file before upgading the plugin:
   VBOX_SYMLINK_LOCATION="/boot/custom/vbox"
   That way the plugin can move existing files once you decide to move the VirtualBox symbolic link from original location "/boot/custom/vbox" to your new desired location.
-# 0.4.2
+### 0.4.2
 - Fixed: Icon file couldn't be saved because plugin folder doesn't exist on first run
-# 0.4.1
+### 0.4.1
 - Fixed: Icon file deleted when upgrading plugin without restarting server
-# 0.4
+### 0.4
 - Workaround for downloading non exiting icon file
-# 0.3
+### 0.3
 - Fixed startup sequence - Virtualbox can only be started (specifically VMs) after array mounted
-# 0.2.7
+### 0.2.7
 - Changed WEBUI layout, Corrected few functions
-# 0.2.6
+### 0.2.6
 - Corrected access to previous session VM list (vms_session.cfg)
-# 0.2.5
+### 0.2.5
 - Corrected boot and plugin update functions
-# 0.2.4
+### 0.2.4
 - Fix install function during boot when online version doesn't exist or is not checked
-# 0.2.3
+### 0.2.3
 - Fix install function
-# 0.2.2
+### 0.2.2
 - Initial Release
 </CHANGES>
 
@@ -191,7 +193,9 @@ if [ "$INSTALL_PKG" == "true" ] ; then
   <!--# Extract files -->
   tar -xf "&pluginLOC;/&packagefile;" -C "/"
   <!-- Make rc.&name executable -->
-  chmod 0770 "/etc/rc.d/rc.&name;"
+  chmod 0770 "&emhttpLOC;/scripts/rc.&name;"
+  <!-- Create symlink to rc file -->
+  ln -s "&emhttpLOC;/scripts/rc.&name;" "/etc/rc.d/rc.&name;"
   <!--# Edit PAGE file depending on unRAID OS type 32/64 bit, also add version number -->
   <!--# Add plugin image to emhttp depending on unRAID OS type 32/64 bit -->
   UNRAID_OS_BITS=$(getconf LONG_BIT)
