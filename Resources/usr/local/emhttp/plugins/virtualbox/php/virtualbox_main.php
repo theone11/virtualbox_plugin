@@ -87,6 +87,16 @@ $vm_run_uuid[$i] = substr($vm_run[$i], (strpos($vm_run[$i], "{")+1), (strpos($vm
 
 $control_actions_exist = "false";
 $version_actions_exist = "false";
+
+if ($unraid_krnl_ver < "4.1.5")
+{
+  $path_prefix = "/usr/local/emhttp";
+}
+else
+{
+  $path_prefix = "";
+}
+
 ?>
 
 <HTML>
@@ -265,7 +275,8 @@ $version_actions_exist = "false";
         <tr>
           <td width="30%">
             <form name="install" method="POST" action="/update.htm" target="progressFrame">
-              <input type="hidden" name="cmd" value="/etc/rc.d/rc.virtualbox install">
+              <input type="hidden" name="cmd" value="<?=$path_prefix;?>/plugins/virtualbox/scripts/rc.virtualbox">
+              <input type="hidden" name="arg1" value="install"/>
               <input type="submit" name="runCmd" value="Install">
             </form>
           </td>
@@ -277,7 +288,8 @@ $version_actions_exist = "false";
         <tr>
           <td width="30%">
             <form name="start_vboxwebsrv" method="POST" action="/update.htm" target="progressFrame">
-              <input type="hidden" name="cmd" value="/etc/rc.d/rc.virtualbox start">
+              <input type="hidden" name="cmd" value="<?=$path_prefix;?>/plugins/virtualbox/scripts/rc.virtualbox">
+              <input type="hidden" name="arg1" value="start"/>
               <input type="submit" name="runCmd" value="Start vboxwebsrv & VMs">
             </form>
           </td>
@@ -289,7 +301,8 @@ $version_actions_exist = "false";
         <tr>
           <td width="30%">
             <form name="start_vboxwebsrv" method="POST" action="/update.htm" target="progressFrame">
-              <input type="hidden" name="cmd" value="/etc/rc.d/rc.virtualbox start_vboxwebsrv">
+              <input type="hidden" name="cmd" value="<?=$path_prefix;?>/plugins/virtualbox/scripts/rc.virtualbox">
+              <input type="hidden" name="arg1" value="start_vboxwebsrv"/>
               <input type="submit" name="runCmd" value="Start vboxwebsrv">
             </form>
           </td>
@@ -301,7 +314,8 @@ $version_actions_exist = "false";
         <tr>
           <td width="30%">
             <form name="start_vms" method="POST" action="/update.htm" target="progressFrame">
-              <input type="hidden" name="cmd" value="/etc/rc.d/rc.virtualbox start_vms">
+              <input type="hidden" name="cmd" value="<?=$path_prefix;?>/plugins/virtualbox/scripts/rc.virtualbox">
+              <input type="hidden" name="arg1" value="start_vms"/>
               <input type="submit" name="runCmd" value="Start VMs">
             </form>
           </td>
@@ -313,7 +327,8 @@ $version_actions_exist = "false";
         <tr>
           <td width="30%">
             <form name="restart" method="POST" action="/update.htm" target="progressFrame">
-              <input type="hidden" name="cmd" value="/etc/rc.d/rc.virtualbox restart">
+              <input type="hidden" name="cmd" value="<?=$path_prefix;?>/plugins/virtualbox/scripts/rc.virtualbox">
+              <input type="hidden" name="arg1" value="restart"/>
               <input type="submit" name="runCmd" value="Restart">
             </form>
           </td>
@@ -325,7 +340,8 @@ $version_actions_exist = "false";
         <tr>
           <td width="30%">
             <form name="stop" method="POST" action="/update.htm" target="progressFrame">
-              <input type="hidden" name="cmd" value="/etc/rc.d/rc.virtualbox stop">
+              <input type="hidden" name="cmd" value="<?=$path_prefix;?>/plugins/virtualbox/scripts/rc.virtualbox">
+              <input type="hidden" name="arg1" value="stop"/>
               <input type="submit" name="runCmd" value="Stop">
             </form>
           </td>
@@ -353,19 +369,22 @@ $version_actions_exist = "false";
           <td colspan="1">VirtualBox ONLINE version different than LOCAL version</td>
 		      <td>
             <form name="download" method="POST" action="/update.htm" target="progressFrame">
-              <input type="hidden" name="cmd" value="/etc/rc.d/rc.virtualbox download">
+              <input type="hidden" name="cmd" value="<?=$path_prefix;?>/plugins/virtualbox/scripts/rc.virtualbox">
+              <input type="hidden" name="arg1" value="download"/>
               <input type="submit" name="runCmd" value="Download Only">
             </form>
           </td>
           <td>
           <?if (($pkg_inst_ver=="not_installed") || ($ext_inst_ver=="not_installed")):?>
             <form name="install3" method="POST" action="/update.htm" target="progressFrame">
-              <input type="hidden" name="cmd" value="/etc/rc.d/rc.virtualbox update">
+              <input type="hidden" name="cmd" value="<?=$path_prefix;?>/plugins/virtualbox/scripts/rc.virtualbox">
+              <input type="hidden" name="arg1" value="update"/>
               <input type="submit" name="runCmd" value="Download & Install">
             </form>
           <?else:?>
             <form name="update3" method="POST" action="/update.htm" target="progressFrame">
-              <input type="hidden" name="cmd" value="/etc/rc.d/rc.virtualbox update">
+              <input type="hidden" name="cmd" value="<?=$path_prefix;?>/plugins/virtualbox/scripts/rc.virtualbox">
+              <input type="hidden" name="arg1" value="update"/>
               <input type="submit" name="runCmd" value="Update (will restart VirtualBox)">
             </form>
           <?endif;?>
@@ -378,7 +397,8 @@ $version_actions_exist = "false";
           <td colspan="2">Guest Additions ONLINE version different than LOCAL version</td>
 		      <td>
             <form name="downloadgad" method="POST" action="/update.htm" target="progressFrame">
-              <input type="hidden" name="cmd" value="/etc/rc.d/rc.virtualbox downloadgad">
+              <input type="hidden" name="cmd" value="<?=$path_prefix;?>/plugins/virtualbox/scripts/rc.virtualbox">
+              <input type="hidden" name="arg1" value="downloadgad"/>
               <input type="submit" name="runCmd" value="Download Only">
             </form>
           </td>
@@ -390,7 +410,8 @@ $version_actions_exist = "false";
           <td colspan="2">VirtualBox ONLINE version different than INSTALLED version</td>
           <td>
             <form name="update2" method="POST" action="/update.htm" target="progressFrame">
-              <input type="hidden" name="cmd" value="/etc/rc.d/rc.virtualbox update">
+              <input type="hidden" name="cmd" value="<?=$path_prefix;?>/plugins/virtualbox/scripts/rc.virtualbox">
+              <input type="hidden" name="arg1" value="update"/>
               <input type="submit" name="runCmd" value="Update (will restart VirtualBox)">
             </form>
           </td>
@@ -402,7 +423,8 @@ $version_actions_exist = "false";
           <td colspan="2">VirtualBox LOCAL version different than INSTALLED version</td>
           <td>
             <form name="install2" method="POST" action="/update.htm" target="progressFrame">
-              <input type="hidden" name="cmd" value="/etc/rc.d/rc.virtualbox update">
+              <input type="hidden" name="cmd" value="<?=$path_prefix;?>/plugins/virtualbox/scripts/rc.virtualbox">
+              <input type="hidden" name="arg1" value="update"/>
               <input type="submit" name="runCmd" value="Update (will restart VirtualBox)">
             </form>
           </td>
@@ -414,7 +436,8 @@ $version_actions_exist = "false";
           <td colspan= "2">Plugin ONLINE version different than Plugin LOCAL version</td>
           <td>
             <form name="updateplg" method="POST" action="/update.htm" target="progressFrame">
-              <input type="hidden" name="cmd" value="/etc/rc.d/rc.virtualbox updateplg">
+              <input type="hidden" name="cmd" value="<?=$path_prefix;?>/plugins/virtualbox/scripts/rc.virtualbox">
+              <input type="hidden" name="arg1" value="updateplg"/>
               <input type="submit" name="runCmd" value="Update Plugin">
             </form>
           </td>
@@ -459,7 +482,9 @@ $version_actions_exist = "false";
                 <td align="center" class="orange-text"><b>&#10006</b></td>
                 <td align="center">
                   <form name="start_vm<?=$i;?>" method="POST" action="/update.htm" target="progressFrame">
-                    <input type="hidden" name="cmd" value="/etc/rc.d/rc.virtualbox start_vm <?=$vm_avl_uuid[$i];?>">
+                    <input type="hidden" name="cmd" value="<?=$path_prefix;?>/plugins/virtualbox/scripts/rc.virtualbox">
+                    <input type="hidden" name="arg1" value="start_vm"/>
+                    <input type="hidden" name="arg2" value="<?=$vm_avl_uuid[$i];?>"/>
                     <input type="submit" name="runCmd" value="Start VM">
                   </form>
                 </td>
@@ -467,7 +492,9 @@ $version_actions_exist = "false";
                 <td align="center" class="green-text"><b>&#10004</b></td>
                 <td align="center">
                   <form name="savestate_vm<?=$i;?>" method="POST" action="/update.htm" target="progressFrame">
-                    <input type="hidden" name="cmd" value="/etc/rc.d/rc.virtualbox savestate_vm <?=$vm_avl_uuid[$i];?>">
+                    <input type="hidden" name="cmd" value="<?=$path_prefix;?>/plugins/virtualbox/scripts/rc.virtualbox">
+                    <input type="hidden" name="arg1" value="savestate_vm"/>
+                    <input type="hidden" name="arg2" value="<?=$vm_avl_uuid[$i];?>"/>
                     <input type="submit" name="runCmd" value="Savestate VM">
                   </form>
                 </td>
