@@ -104,7 +104,7 @@ virtualbox_getonlineversion()
       # Get latest 32bit version number from server
       VBOX_PKG_ONLINE_VER=$(grep -v "x64.t[gx]z<" /tmp/virtualbox_a1ainasite.html | grep ".t[gx]z<" | grep -m 1 "${UNRAID_KERNEL_VER}" | awk 'gsub(/.*vbox-|-unRAID.*/,"")')
       MY_COMMAND="awk 'gsub (/.*-$UNRAID_KERNEL_VER.|<\/a>.*/,\"\")'"
-      VBOX_PKG_ONLINE_EXTENSION=$(grep -v "x64.t[gx]z<" /tmp/virtualbox_a1ainasite.html | grep -m 1 ".t[gx]z<" | eval $MY_COMMAND)
+      VBOX_PKG_ONLINE_EXTENSION=$(grep -v "x64.t[gx]z<" /tmp/virtualbox_a1ainasite.html | grep -m 1 "${UNRAID_KERNEL_VER}" | eval $MY_COMMAND)
       VBOX_PKG_ONLINE_FILENAME="vbox-${VBOX_PKG_ONLINE_VER}-unRAID-${UNRAID_KERNEL_VER}.${VBOX_PKG_ONLINE_EXTENSION}"
       VBOX_PKG_LATEST_ONLINE_VER=$(grep -v "x64.t[gx]z<" /tmp/virtualbox_a1ainasite.html | grep -m 1 ".t[gx]z<" | awk 'gsub(/.*vbox-|-unRAID.*/,"")')
       VBOX_PKG_LATEST_ONLINE_KERNEL_VER=$(grep -v "x64.t[gx]z<" /tmp/virtualbox_a1ainasite.html | grep -m 1 ".t[gx]z<" | awk 'gsub(/.*unRAID-|.t[gx]z.*/,"")')
@@ -112,7 +112,7 @@ virtualbox_getonlineversion()
       # Get latest 64bit version number from server
       VBOX_PKG_ONLINE_VER=$(grep "x64.t[gx]z<" /tmp/virtualbox_a1ainasite.html | grep -m 1 "${UNRAID_KERNEL_VER}" | awk 'gsub(/.*vbox-|-unRAID.*/,"")')
       MY_COMMAND="awk 'gsub (/.*-$UNRAID_KERNEL_VER-|<\/a>.*/,\"\")'"
-      VBOX_PKG_ONLINE_EXTENSION=$(grep "x64.t[gx]z<" /tmp/virtualbox_a1ainasite.html | grep -m 1 ".t[gx]z<" | eval $MY_COMMAND)
+      VBOX_PKG_ONLINE_EXTENSION=$(grep "x64.t[gx]z<" /tmp/virtualbox_a1ainasite.html | grep -m 1 "${UNRAID_KERNEL_VER}" | eval $MY_COMMAND)
       VBOX_PKG_ONLINE_FILENAME="vbox-${VBOX_PKG_ONLINE_VER}-unRAID-${UNRAID_KERNEL_VER}-${VBOX_PKG_ONLINE_EXTENSION}"
       VBOX_PKG_LATEST_ONLINE_VER=$(grep -m 1 "x64.t[gx]z<" /tmp/virtualbox_a1ainasite.html | awk 'gsub(/.*vbox-|-unRAID.*/,"")')
       VBOX_PKG_LATEST_ONLINE_KERNEL_VER=$(grep -m 1 "x64.t[gx]z<" /tmp/virtualbox_a1ainasite.html | awk 'gsub(/.*unRAID-|-x64.t[gx]z.*/,"")')
