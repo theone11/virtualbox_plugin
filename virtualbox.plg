@@ -7,7 +7,7 @@
 <!ENTITY launch      "Settings/&name;">
 <!ENTITY pluginURL   "https://raw.githubusercontent.com/theone11/virtualbox_plugin/master/&name;.plg">
 <!ENTITY packageVER  "&version;">
-<!ENTITY packageMD5  "0f688ebbb574d38b1484ec5894709d00">
+<!ENTITY packageMD5  "687378ef5fb77e5b4ab380a5258d689d">
 <!ENTITY packagefile "&name;-package-&packageVER;.tar.gz">
 <!ENTITY packageURL  "https://github.com/theone11/virtualbox_plugin/raw/master/&packagefile;">
 <!ENTITY pluginLOC   "/boot/config/plugins/&name;">
@@ -27,6 +27,7 @@
 
 <CHANGES>
 ###2017.05.19
+- Fixed extension pack install failure due to license agreement acceptance prompt
 ###2015.09.18
 - Fixed online package lookup
 ###2015.09.17
