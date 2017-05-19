@@ -399,7 +399,7 @@ virtualbox_install()
           # Extension package already installed - need to run cleanup and install --replace
         else
           /opt/VirtualBox/VBoxManage extpack cleanup
-          yes | /opt/VirtualBox/VBoxManage extpack install --replace ${VBOX_EXT_LOCAL_FILENAME}
+          /opt/VirtualBox/VBoxManage extpack install --replace ${VBOX_EXT_LOCAL_FILENAME}
         fi
         virtualbox_getlocalversion
         if [ "$VBOX_EXT_INSTALLED_VER" == "not_installed" ] ; then
