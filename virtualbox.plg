@@ -3,11 +3,11 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name        "virtualbox">
 <!ENTITY author      "Dan Kessler">
-<!ENTITY version     "2017.05.19a">
+<!ENTITY version     "2017.05.19b">
 <!ENTITY launch      "Settings/&name;">
 <!ENTITY pluginURL   "https://raw.githubusercontent.com/theone11/virtualbox_plugin/master/&name;.plg">
 <!ENTITY packageVER  "&version;">
-<!ENTITY packageMD5  "d6ce072d4a7965bf1c545ee154973fab">
+<!ENTITY packageMD5  "5db5e22ed62db9e41b23d663c363f179">
 <!ENTITY packagefile "&name;-package-&packageVER;.tar.gz">
 <!ENTITY packageURL  "https://github.com/theone11/virtualbox_plugin/raw/master/&packagefile;">
 <!ENTITY pluginLOC   "/boot/config/plugins/&name;">
@@ -22,10 +22,12 @@
 >
 
 <!--
-# Release Version v2017.05.19a
+# Release Version v2017.05.19b
 -->
 
 <CHANGES>
+###2017.05.19b
+- Fixed EOL 2nd try
 ###2017.05.19a
 - Fixed EOL
 ###2017.05.19
